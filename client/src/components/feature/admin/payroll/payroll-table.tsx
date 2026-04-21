@@ -1,9 +1,7 @@
-// components/features/payroll/payroll-table.tsx
 "use client";
 
 import { useState, useTransition } from "react";
-import { Clock, Loader, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Clock } from "lucide-react";
 import PayrollHeader from "./payroll-header";
 import PayrollInfoBanner from "./payroll-info-banner";
 import PayrollControls from "./payroll-controls";
@@ -22,6 +20,7 @@ type Props = {
   month: number;
   year: number;
 };
+
 export default function PayrollTable({
   summary: initialSummary,
   teams,
@@ -35,7 +34,6 @@ export default function PayrollTable({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // [API] fetch summary when month changes
   async function fetchSummary(m: number, y: number) {
     const result = await getPayrollSummaryAction(m, y);
     setSummary(result.success ? (result.data ?? null) : null);
@@ -55,7 +53,6 @@ export default function PayrollTable({
     });
   }
 
-  // [LOGIC] filter by team
   const payrollItems = summary?.period.payrollItems ?? [];
   const filtered =
     selectedTeamId === "all"
@@ -63,22 +60,33 @@ export default function PayrollTable({
       : payrollItems.filter((item) => item.employee.teamId === selectedTeamId);
 
   const monthStr = `${year}-${String(month).padStart(2, "0")}`;
-
   const getTeamName = (teamId: string | null) =>
-    teams.find((t) => t.id === teamId)?.name ?? "Unassigned";
+    teams.find((t) => t.id === teamId)?.name ?? "ไม่มีทีม";
+
+  // ✅ detect rate changes
+  const hasRateChanges = payrollItems.some((item) => {
+    const rateChanged =
+      Number(item.employee.dailyRate) !== Number(item.dailyRateSnapshot);
+    const allowanceChanged =
+      Number(item.employee.allowancePerDay) !== Number(item.allowanceSnapshot);
+    return rateChanged || allowanceChanged;
+  });
 
   return (
     <div className="space-y-6">
       <PayrollHeader
-        hasSummary={!!summary}
         isPending={isPending}
         onGenerate={handleGenerate}
+        hasRateChanges={hasRateChanges}
       />
 
       <PayrollInfoBanner />
-      {summary && (
+
+      {/* Warning + ปุ่มคำนวณใหม่ — แสดงเฉพาะตอน rate เปลี่ยน */}
+      {summary && hasRateChanges && (
         <PayrollRateWarning payrollItems={summary.period.payrollItems} />
       )}
+
       <PayrollControls
         monthStr={monthStr}
         selectedTeamId={selectedTeamId}
@@ -88,25 +96,20 @@ export default function PayrollTable({
         onTeamChange={setSelectedTeamId}
       />
 
-      {/* Empty State */}
+      {/* Empty state — auto-generate แล้วยังไม่มีข้อมูล = ไม่มี approved attendance */}
       {!summary && (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-12 text-center">
-          <p className="text-white/30 text-lg mb-2">No payroll generated yet</p>
-          <p className="text-white/20 text-sm mb-6">
-            Click Generate Payroll to calculate wages for this month
-          </p>
-          <Button
-            onClick={handleGenerate}
-            disabled={isPending}
-            className="gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            {isPending ? (
-              <Loader size={16} className="animate-spin" />
-            ) : (
-              <RefreshCw size={16} />
-            )}
-            Generate Payroll
-          </Button>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-16 text-center space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto">
+            <Clock size={24} className="text-white/20" />
+          </div>
+          <div>
+            <p className="text-white/50 font-semibold">
+              ไม่มีข้อมูลเงินเดือนเดือนนี้
+            </p>
+            <p className="text-white/20 text-sm mt-1">
+              ยังไม่มีการเข้างานที่อนุมัติแล้วในเดือนนี้
+            </p>
+          </div>
         </div>
       )}
 
@@ -118,13 +121,13 @@ export default function PayrollTable({
               <thead className="border-b border-white/10 text-white/40 text-xs uppercase">
                 <tr>
                   <th className="w-10 px-4 py-3"></th>
-                  <th className="px-4 py-3">Employee</th>
-                  <th className="px-4 py-3 text-right">Work Days</th>
-                  <th className="px-4 py-3 text-right">Normal Pay</th>
-                  <th className="px-4 py-3 text-right">OT Pay</th>
-                  <th className="px-4 py-3 text-right">Allowance</th>
+                  <th className="px-4 py-3">พนักงาน</th>
+                  <th className="px-4 py-3 text-right">วันทำงาน</th>
+                  <th className="px-4 py-3 text-right">ค่าแรงปกติ</th>
+                  <th className="px-4 py-3 text-right">ค่าล่วงเวลา</th>
+                  <th className="px-4 py-3 text-right">เบี้ยเลี้ยง</th>
                   <th className="px-4 py-3 text-right font-black text-white">
-                    Total Pay
+                    รวมทั้งหมด
                   </th>
                 </tr>
               </thead>
@@ -132,7 +135,7 @@ export default function PayrollTable({
                 {filtered.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-white/30">
-                      No payroll data found
+                      ไม่พบข้อมูลเงินเดือน
                     </td>
                   </tr>
                 ) : (
@@ -153,7 +156,7 @@ export default function PayrollTable({
           </div>
         </div>
       )}
-      {/* Last updated */}
+
       {summary && (
         <div className="flex items-center gap-1.5 text-xs text-white/30">
           <Clock size={11} />

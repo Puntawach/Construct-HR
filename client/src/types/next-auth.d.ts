@@ -8,8 +8,7 @@ declare module "next-auth" {
     lastName?: string;
     accessToken?: string;
     role?: "WORKER" | "LEADER" | "ADMIN" | "SUPER_ADMIN";
-    status?: "ACTIVE" | "INACTIVE" | "DELETED";
-    // expiredIn?: number;
+    status?: "ACTIVE" | "INACTIVE" | "DELETE";
   }
 }
 
@@ -21,7 +20,6 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     sub: string;
     role?: "WORKER" | "LEADER" | "ADMIN" | "SUPER_ADMIN";
-    status?: "ACTIVE" | "INACTIVE" | "DELETED";
-    // accessTokenExpiredAt: number;
+    status?: "ACTIVE" | "INACTIVE" | "DELETE";
   }
 }

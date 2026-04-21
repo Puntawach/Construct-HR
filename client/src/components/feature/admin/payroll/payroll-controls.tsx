@@ -1,4 +1,5 @@
-// components/features/payroll/payroll-controls.tsx
+"use client";
+
 import type { Team } from "@/lib/api/admin/team.type";
 
 type Props = {
@@ -33,7 +34,7 @@ export default function PayrollControls({
         className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
       >
         <option value="all" className="bg-slate-900">
-          All Teams
+          ทุกทีม
         </option>
         {teams.map((t) => (
           <option key={t.id} value={t.id} className="bg-slate-900">
@@ -45,10 +46,11 @@ export default function PayrollControls({
       {totalPayout !== null && (
         <div className="ml-auto text-right">
           <p className="text-xs text-white/40 uppercase tracking-wider">
-            Total Payout
+            ยอดรวมทั้งหมด
           </p>
           <p className="text-2xl font-bold text-white">
-            ฿{totalPayout.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+            ฿{" "}
+            {totalPayout.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
           </p>
         </div>
       )}

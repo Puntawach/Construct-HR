@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
       new URL("https://picsum.photos/**"),
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 export default nextConfig;

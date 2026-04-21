@@ -112,17 +112,6 @@ export default function PayrollContent({
                 ฿
                 {totalPay.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
               </p>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    payroll.payrollPeriod.isLocked
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-amber-500/20 text-amber-400"
-                  }`}
-                >
-                  {payroll.payrollPeriod.isLocked ? "ยืนยันแล้ว" : "รอยืนยัน"}
-                </span>
-              </div>
             </CardContent>
           </Card>
 

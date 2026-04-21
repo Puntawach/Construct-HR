@@ -3,6 +3,8 @@ export type Site = {
   name: string;
   lat: number;
   long: number;
+  shiftStart: string;
+  shiftEnd: string;
   createdAt: string;
   updatedAt: string;
 };

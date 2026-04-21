@@ -1,20 +1,23 @@
-// app/admin/attendance/page.tsx
-import { getCurrentUser } from "@/lib/auth/session";
-import { teamService } from "@/lib/api/admin/team.service";
-import AttendanceTable from "@/components/feature/admin/attendance/attendance-table";
-import { attendanceService } from "@/lib/api/attendance/attendance.service";
+import { teamService } from "@/lib/api/admin/team.service"
+import AttendanceTable from "@/components/feature/admin/attendance/attendance-table"
+import { getAttendanceByMonthAction } from "@/lib/actions/admin/attendance.action"
 
-export default async function AttendancePage() {
-  await getCurrentUser();
+type Props = {
+  searchParams: Promise<{ month?: string; year?: string }>
+}
 
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+export default async function AttendancePage({ searchParams }: Props) {
+  const params = await searchParams
+  const now = new Date()
+  const month = params.month ? Number(params.month) : now.getMonth() + 1
+  const year = params.year ? Number(params.year) : now.getFullYear()
 
-  const [attendances, teams] = await Promise.all([
-    attendanceService.getAllByMonth(month, year),
+  const [attendancesResult, teams] = await Promise.all([
+    getAttendanceByMonthAction(month, year),
     teamService.getAll(),
-  ]);
+  ])
+
+  const attendances = attendancesResult.success ? (attendancesResult.data ?? []) : []
 
   return (
     <AttendanceTable
@@ -23,5 +26,5 @@ export default async function AttendancePage() {
       initialMonth={month}
       initialYear={year}
     />
-  );
+  )
 }

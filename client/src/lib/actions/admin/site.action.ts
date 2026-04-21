@@ -5,6 +5,8 @@ import { formatActionError } from "@/lib/actions/action.utils";
 import type { ActionResult } from "@/lib/actions/action.type";
 import { siteService, type SitePayload } from "@/lib/api/site/site.service";
 import type { Site } from "@/lib/api/site/site.type";
+import { attendanceService } from "@/lib/api/attendance/attendance.service";
+import { AttendanceWithEmployee } from "@/lib/api/attendance/attendance.type";
 
 export async function getSitesAction(): Promise<ActionResult<Site[]>> {
   try {
@@ -45,6 +47,16 @@ export async function deleteSiteAction(id: string): Promise<ActionResult> {
     await siteService.remove(id);
     revalidatePath("/admin/sites");
     return { success: true };
+  } catch (error) {
+    return formatActionError(error);
+  }
+}
+export async function getSiteAttendanceAction(
+  siteId: string,
+): Promise<ActionResult<AttendanceWithEmployee[]>> {
+  try {
+    const data = await attendanceService.getBySite(siteId);
+    return { success: true, data };
   } catch (error) {
     return formatActionError(error);
   }

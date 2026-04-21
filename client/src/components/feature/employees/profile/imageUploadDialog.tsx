@@ -1,5 +1,5 @@
 "use client";
-
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,13 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/v0/ui/dialog";
+} from "@/components/ui/dialog";
 import { ActionResult } from "@/lib/actions/action.type";
 import { FileImage, Loader } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ReactNode, useRef, useState, useTransition } from "react";
 
+// ... rest เหมือนเดิมทุกอย่าง
 type ImageUploadDialogProps = {
   initialUrl?: string | null;
   trigger: ReactNode;

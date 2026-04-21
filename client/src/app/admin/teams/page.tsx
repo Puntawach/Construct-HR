@@ -1,12 +1,15 @@
 import TeamAdminTable from "@/components/feature/admin/team/team-admin-table";
-import { teamService } from "@/lib/api/admin/team.service";
-import { employeeService } from "@/lib/api/employee/employee-service";
+import { getTeamsAction } from "@/lib/actions/admin/team.action";
+import { getAllEmployeesAction } from "@/lib/actions/admin/employee-action";
 
 export default async function TeamPage() {
-  const [teams, employees] = await Promise.all([
-    teamService.getAll().catch(() => []),
-    employeeService.getAllEmployee().catch(() => []),
+  const [teamsResult, employeesResult] = await Promise.all([
+    getTeamsAction(),
+    getAllEmployeesAction(),
   ]);
+
+  const teams = teamsResult.success ? (teamsResult.data ?? []) : [];
+  const employees = employeesResult.success ? (employeesResult.data ?? []) : [];
 
   return (
     <div className="space-y-6">

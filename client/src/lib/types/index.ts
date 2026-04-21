@@ -1,5 +1,4 @@
 import { Employee } from "@/lib/api/employee/employee.type";
-
 export type {
   Employee,
   EmployeeStatus,
@@ -42,20 +41,10 @@ export type Attendance = {
   checkIns: CheckIn[];
 };
 
-export type ReportImage = {
-  id: string;
-  imageUrl: string;
-  detail: string;
-  status: ReportStatus;
-  attendanceId: string;
-  createdAt: string;
-};
-
 export type PayrollPeriod = {
   id: string;
   month: number;
   year: number;
-  isLocked: boolean;
 };
 
 export type PayrollItem = {

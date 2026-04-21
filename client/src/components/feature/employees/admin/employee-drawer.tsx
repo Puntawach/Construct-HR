@@ -42,7 +42,7 @@ export default function EmployeeDrawer({ employee, teams, onClose }: Props) {
   if (!employee) return null;
 
   const emp = employee as NonNullable<typeof employee>;
-  const isDeleted = emp.status === "DELETED";
+  const isDeleted = emp.status === "DELETE";
   const initials = `${emp.firstName[0]}${emp.lastName[0]}`.toUpperCase();
   const teamName = teams.find((t) => t.id === emp.teamId)?.name ?? "Unassigned";
 

@@ -36,6 +36,13 @@ const getAllByMonth = (month: number, year: number) =>
     `/attendance/admin/all?month=${month}&year=${year}`,
   );
 
+const getBySite = (siteId: string) =>
+  api.get<AttendanceWithEmployee[]>(`/attendance/admin/site/${siteId}`);
+const adminEdit = (
+  attendanceId: string,
+  data: { normalHours?: number; otHours?: number; overrideNote?: string },
+) => api.patch<Attendance>(`/attendance/${attendanceId}/admin-edit`, data);
+
 export const attendanceService = {
   getMyAttendance,
   getByEmployee,
@@ -44,4 +51,6 @@ export const attendanceService = {
   getAllByMonth,
   approve,
   reject,
+  getBySite,
+  adminEdit,
 };

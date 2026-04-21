@@ -22,7 +22,7 @@ export default function EmployeeRow({ employee, team, onSelect }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
-  const isDeleted = employee.status === "DELETED";
+  const isDeleted = employee.status === "DELETE";
 
   function handleConfirmDelete() {
     startTransition(async () => {

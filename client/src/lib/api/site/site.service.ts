@@ -5,8 +5,9 @@ export type SitePayload = {
   name: string;
   lat: number;
   long: number;
+  shiftStart?: string;
+  shiftEnd?: string;
 };
-
 const getAll = () => api.get<Site[]>("/sites");
 const getById = (id: string) => api.get<Site>(`/sites/${id}`);
 const create = (data: SitePayload) => api.post<Site>("/sites", data);

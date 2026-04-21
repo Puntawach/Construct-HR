@@ -1,52 +1,72 @@
-import { Attendance } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { Briefcase, MapPin } from "lucide-react";
+import { Attendance } from "@/lib/types"
+import { MapPin, Clock } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type Props = {
-  todayAttendance: Attendance | null;
-};
+  todayAttendance: Attendance | null
+}
 
 export default function DashboardCardStatus({ todayAttendance }: Props) {
-  const isCheckedIn = !!todayAttendance;
-  const isCheckedOut = !!todayAttendance?.checkIns?.[0]?.checkOutTime;
-  const workedHours = todayAttendance?.totalHours ?? 0;
+  const isCheckedIn = !!todayAttendance
+  const isCheckedOut = !!todayAttendance?.checkIns?.[0]?.checkOutTime
+  const isWorking = isCheckedIn && !isCheckedOut
+  const workedHours = todayAttendance?.totalHours ?? 0
+
+  const checkInTime = todayAttendance?.checkIns?.[0]?.checkInTime
+    ? new Date(todayAttendance.checkIns[0].checkInTime).toLocaleTimeString("th-TH", {
+        hour: "2-digit", minute: "2-digit", hour12: false,
+      })
+    : null
 
   return (
-    <div className="bg-slate-900 rounded-2xl p-5 text-white space-y-4">
+    <div className={cn(
+      "rounded-2xl p-5 space-y-4",
+      isWorking
+        ? "bg-blue-500"
+        : isCheckedOut
+          ? "bg-gray-900"
+          : "bg-gray-900"
+    )}>
       <div className="flex items-start justify-between">
-        <span
-          className={cn(
+        <div className="space-y-1">
+          <span className={cn(
             "text-xs font-semibold px-2.5 py-1 rounded-full",
-            isCheckedIn && !isCheckedOut
-              ? "bg-green-500/20 text-green-400"
-              : "bg-white/10 text-white/60",
-          )}
-        >
-          {isCheckedIn && !isCheckedOut ? "● On Duty" : "● Off Duty"}
-        </span>
+            isWorking
+              ? "bg-white/20 text-white"
+              : "bg-white/10 text-white/50"
+          )}>
+            {isWorking ? "● On Duty" : isCheckedOut ? "● Shift Complete" : "● Off Duty"}
+          </span>
+        </div>
         <div className="text-right">
-          <p className="text-[10px] text-white/50 uppercase tracking-wide">
-            Worked Today
-          </p>
-          <p className="text-2xl font-bold">
-            {workedHours > 0 ? `${workedHours.toFixed(1)}h` : "0h"}
+          <p className="text-[10px] text-white/50 uppercase tracking-widest">Today</p>
+          <p className="text-3xl font-bold text-white tracking-tight">
+            {workedHours > 0 ? `${workedHours.toFixed(1)}h` : "–"}
           </p>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest">
-            Current Assignment
-          </p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <MapPin size={14} className="text-blue-400" />
-            <p className="font-semibold">
-              {todayAttendance?.site?.name ?? "-"}
+      <div className="space-y-2.5">
+        {todayAttendance?.site?.name && (
+          <div className="flex items-center gap-2">
+            <MapPin size={13} className="text-white/50 shrink-0" />
+            <p className="text-sm font-medium text-white">
+              {todayAttendance.site.name}
             </p>
           </div>
-        </div>
+        )}
+        {checkInTime && (
+          <div className="flex items-center gap-2">
+            <Clock size={13} className="text-white/50 shrink-0" />
+            <p className="text-sm text-white/70">
+              เข้างาน {checkInTime}
+            </p>
+          </div>
+        )}
+        {!isCheckedIn && (
+          <p className="text-sm text-white/40">ยังไม่ได้เข้างานวันนี้</p>
+        )}
       </div>
     </div>
-  );
+  )
 }

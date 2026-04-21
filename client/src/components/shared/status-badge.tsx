@@ -73,10 +73,10 @@ export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
       label: "Inactive",
       className: "bg-yellow-100 text-yellow-700 border-yellow-200",
     },
-    DELETED: {
+    DELETE: {
       label: "Deleted",
       className: "bg-red-100 text-red-700 border-red-200",
-    },
+    }, // แก้ DELETED → DELETE
   };
   const { label, className } = map[status];
   return (
@@ -85,7 +85,6 @@ export function EmployeeStatusBadge({ status }: { status: EmployeeStatus }) {
     </Badge>
   );
 }
-
 // Role badge
 export function RoleBadge({ role }: { role: Role }) {
   const map: Record<Role, { label: string; className: string }> = {

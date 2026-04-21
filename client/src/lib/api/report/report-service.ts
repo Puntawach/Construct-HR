@@ -1,15 +1,14 @@
 import { api } from "@/lib/api/client";
-import type { ReportImage } from "@/lib/types";
-import { ReportWithAttendance } from "./report.type";
+import type { ReportWithAttendance } from "./report.type";
 
 const getMyReports = () => api.get<ReportWithAttendance[]>("/reports/me");
 const getAllReports = () => api.get<ReportWithAttendance[]>("/reports");
 const create = (formData: FormData) =>
-  api.post<ReportImage>("/reports", formData);
+  api.post<ReportWithAttendance>("/reports", formData);
 const approveReport = (reportId: string) =>
-  api.patch<ReportImage>(`/reports/${reportId}/approve`);
+  api.patch<ReportWithAttendance>(`/reports/${reportId}/approve`);
 const rejectReport = (reportId: string) =>
-  api.patch<ReportImage>(`/reports/${reportId}/reject`);
+  api.patch<ReportWithAttendance>(`/reports/${reportId}/reject`);
 
 export const reportService = {
   getMyReports,

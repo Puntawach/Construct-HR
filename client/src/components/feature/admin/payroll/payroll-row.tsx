@@ -21,7 +21,6 @@ export default function PayrollRow({
 }: Props) {
   const initials =
     `${item.employee.firstName[0]}${item.employee.lastName[0]}`.toUpperCase();
-
   const updatedAt = new Date(item.updatedAt).toLocaleDateString("th-TH", {
     day: "numeric",
     month: "short",
@@ -78,7 +77,7 @@ export default function PayrollRow({
         <tr className="bg-white/[0.02]">
           <td colSpan={7} className="px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
-              {/* Hours breakdown */}
+              {/* ชั่วโมงทำงาน */}
               <div className="space-y-3">
                 <p className="text-xs font-bold uppercase text-white/30">
                   ชั่วโมงทำงาน
@@ -86,7 +85,7 @@ export default function PayrollRow({
                 <div className="space-y-2">
                   {[
                     {
-                      label: "ชม.ปกติ",
+                      label: "ชม. ปกติ",
                       value: `${item.normalHours.toFixed(1)} ชม.`,
                       color: "text-white",
                     },
@@ -119,7 +118,7 @@ export default function PayrollRow({
                 </div>
               </div>
 
-              {/* Pay breakdown */}
+              {/* การคำนวณ */}
               <div className="space-y-3">
                 <p className="text-xs font-bold uppercase text-white/30">
                   การคำนวณ
@@ -128,19 +127,19 @@ export default function PayrollRow({
                   {[
                     {
                       label: "ค่าแรงปกติ",
-                      formula: `${item.normalHours.toFixed(1)}h × ฿${Number(item.employee.dailyRate ?? 0).toLocaleString()}/8`,
+                      formula: `${item.normalHours.toFixed(1)} ชม. × ฿${Number(item.dailyRateSnapshot ?? item.employee.dailyRate ?? 0).toLocaleString("th-TH")}/8`,
                       value: thb(item.normalPay),
                       color: "text-white",
                     },
                     {
-                      label: "OT Pay",
-                      formula: `${item.otHours.toFixed(1)}h × 1.5x`,
+                      label: "ค่าล่วงเวลา (OT)",
+                      formula: `${item.otHours.toFixed(1)} ชม. × 1.5x`,
                       value: thb(item.otPay),
                       color: "text-amber-400",
                     },
                     {
                       label: "เบี้ยเลี้ยง",
-                      formula: `${item.workDays} วัน × ฿${Number(item.employee.allowancePerDay ?? 0).toLocaleString()}`,
+                      formula: `${item.workDays} วัน × ฿${Number(item.allowanceSnapshot ?? item.employee.allowancePerDay ?? 0).toLocaleString("th-TH")}`,
                       value: thb(item.allowance),
                       color: "text-white",
                     },
@@ -163,7 +162,7 @@ export default function PayrollRow({
                 </div>
               </div>
 
-              {/* Summary + meta */}
+              {/* สรุป */}
               <div className="space-y-3">
                 <p className="text-xs font-bold uppercase text-white/30">
                   สรุป
@@ -171,17 +170,17 @@ export default function PayrollRow({
                 <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-2">
                   {[
                     {
-                      label: "Normal Pay",
+                      label: "ค่าแรงปกติ",
                       value: thb(item.normalPay),
                       color: "text-white",
                     },
                     {
-                      label: "OT Pay",
+                      label: "ค่าล่วงเวลา",
                       value: thb(item.otPay),
                       color: "text-amber-400",
                     },
                     {
-                      label: "Allowance",
+                      label: "เบี้ยเลี้ยง",
                       value: thb(item.allowance),
                       color: "text-white",
                     },
@@ -195,12 +194,10 @@ export default function PayrollRow({
                     </div>
                   ))}
                   <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-base">
-                    <span className="text-white">Total Pay</span>
+                    <span className="text-white">รวมทั้งหมด</span>
                     <span className="text-blue-400">{thb(item.totalPay)}</span>
                   </div>
                 </div>
-
-                {/* Last updated */}
                 <div className="flex items-center gap-1.5 text-xs text-white/25">
                   <Clock size={11} />
                   <span>อัพเดทล่าสุด {updatedAt}</span>

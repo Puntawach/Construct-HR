@@ -26,6 +26,8 @@ export type AttendanceWithEmployee = {
   checkIns: CheckIn[];
   createdAt: string;
   updatedAt: string;
+  isManualOverride: boolean;
+  overrideNote: string | null;
   site: {
     id: string;
     name: string;
@@ -38,5 +40,7 @@ export type AttendanceWithEmployee = {
     lastName: string;
     teamId: string | null;
     avatarUrl: string | null;
+    dailyRate: number | null;
+    allowancePerDay: number | null;
   };
 };

@@ -1,4 +1,5 @@
-export type EmployeeStatus = "ACTIVE" | "INACTIVE" | "DELETED";
+export type EmployeeStatus = "ACTIVE" | "INACTIVE" | "DELETE"; // แก้ DELETED → DELETE
+
 export type Role = "WORKER" | "LEADER" | "ADMIN" | "SUPER_ADMIN";
 
 export type Employee = {

@@ -3,12 +3,15 @@
 import { Button } from "@/components/ui/button";
 import type { Team } from "@/lib/api/admin/team.type";
 import type { AttendanceWithEmployee } from "@/lib/api/attendance/attendance.type";
-import { Download } from "lucide-react";
+import { Download, Loader } from "lucide-react";
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import AttendanceDetailModal from "./attendance-detail-modal";
 import MonthNavigator from "./attendance-monthNav";
 import AttendanceGrid from "./attendance-grid";
 import TeamTabs from "./attendance-team";
+import { exportAttendanceExcel } from "@/lib/utils/export-attendance";
+import { getAttendanceByMonthAction } from "@/lib/actions/admin/attendance.action";
 
 type Props = {
   initialAttendances: AttendanceWithEmployee[];
@@ -23,6 +26,8 @@ export default function AttendanceTable({
   initialMonth,
   initialYear,
 }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
   const [month, setMonth] = useState(initialMonth);
   const [year, setYear] = useState(initialYear);
@@ -40,9 +45,8 @@ export default function AttendanceTable({
   async function fetchAttendances(m: number, y: number) {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/attendance?month=${m}&year=${y}`);
-      const data = await res.json();
-      setAttendances(data);
+      const result = await getAttendanceByMonthAction(m, y);
+      setAttendances(result.success ? (result.data ?? []) : []);
     } finally {
       setIsLoading(false);
     }
@@ -53,6 +57,7 @@ export default function AttendanceTable({
     const newYear = month === 1 ? year - 1 : year;
     setMonth(newMonth);
     setYear(newYear);
+    router.push(`${pathname}?month=${newMonth}&year=${newYear}`);
     await fetchAttendances(newMonth, newYear);
   }
 
@@ -61,7 +66,12 @@ export default function AttendanceTable({
     const newYear = month === 12 ? year + 1 : year;
     setMonth(newMonth);
     setYear(newYear);
+    router.push(`${pathname}?month=${newMonth}&year=${newYear}`);
     await fetchAttendances(newMonth, newYear);
+  }
+
+  function handleExport() {
+    exportAttendanceExcel(attendances, teams, month, year);
   }
 
   const selectedTeam = teams.find((t) => t.id === selectedTeamId);
@@ -76,13 +86,14 @@ export default function AttendanceTable({
             Click on any day to review or approve hours
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="gap-2 border-white/10 hover:bg-white/5"
+        <button
+          className="flex items-center gap-2 px-4 py-2 bg-blue-800 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleExport}
+          disabled={attendances.length === 0 || isLoading}
         >
           <Download size={16} />
-          Export
-        </Button>
+          Export Excel
+        </button>
       </div>
 
       <MonthNavigator
@@ -92,7 +103,17 @@ export default function AttendanceTable({
         onNext={handleNextMonth}
       />
 
-      <div className="flex-1 rounded-xl border border-white/10 overflow-hidden bg-white/5 flex flex-col">
+      {/* Loading overlay */}
+      <div className="flex-1 rounded-xl border border-white/10 overflow-hidden bg-white/5 flex flex-col relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/40 z-10 flex items-center justify-center rounded-xl">
+            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full">
+              <Loader size={14} className="animate-spin text-white" />
+              <span className="text-sm text-white">กำลังโหลด...</span>
+            </div>
+          </div>
+        )}
+
         <AttendanceGrid
           selectedTeam={selectedTeam}
           daysInMonth={daysInMonth}

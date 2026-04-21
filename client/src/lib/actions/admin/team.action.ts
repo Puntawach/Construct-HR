@@ -49,3 +49,29 @@ export async function deleteTeamAction(id: string): Promise<ActionResult> {
     return formatActionError(error);
   }
 }
+
+export async function addMemberAction(
+  teamId: string,
+  employeeId: string,
+): Promise<ActionResult> {
+  try {
+    await teamService.addMember(teamId, employeeId);
+    revalidatePath("/admin/teams");
+    return { success: true };
+  } catch (error) {
+    return formatActionError(error);
+  }
+}
+
+export async function removeMemberAction(
+  teamId: string,
+  employeeId: string,
+): Promise<ActionResult> {
+  try {
+    await teamService.removeMember(teamId, employeeId);
+    revalidatePath("/admin/teams");
+    return { success: true };
+  } catch (error) {
+    return formatActionError(error);
+  }
+}
