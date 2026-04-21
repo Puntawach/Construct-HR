@@ -1,18 +1,15 @@
 import { getDashboardDataAction } from "@/lib/actions/admin/dashboard.action";
 import { getPayrollSummaryAction } from "@/lib/actions/admin/payroll-action";
 import {
-  Users,
-  MapPin,
-  UsersRound,
-  ClipboardCheck,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  DollarSign,
-  TrendingUp,
   AlertTriangle,
-  Activity,
   ArrowRight,
+  CheckCircle2,
+  ClipboardCheck,
+  DollarSign,
+  MapPin,
+  TrendingUp,
+  Users,
+  UsersRound,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -148,7 +145,7 @@ export default async function DashboardPage() {
           return (
             <div
               key={s.label}
-              className={`rounded-2xl border ${ac.border} bg-white/[0.03] p-5 space-y-4`}
+              className={`rounded-2xl border ${ac.border} bg-white/3 p-5 space-y-4`}
             >
               <div className="flex items-center justify-between">
                 <s.icon size={16} className={ac.icon} />
@@ -170,7 +167,7 @@ export default async function DashboardPage() {
       {/* Main content — 2 col */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Attendance status — 3 col */}
-        <div className="lg:col-span-3 rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-5">
+        <div className="lg:col-span-3 rounded-2xl border border-white/10 bg-white/3 p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-white">สถานะการเข้างาน</h2>
@@ -290,7 +287,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Payroll — 2 col */}
-        <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/[0.03] p-6 flex flex-col space-y-5">
+        <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/3 p-6 flex flex-col space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-white">เงินเดือน</h2>
@@ -357,7 +354,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top workers */}
         {topWorkers.length > 0 && (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-5">
+          <div className="rounded-2xl border border-white/10 bg-white/3 p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold text-white">Top พนักงาน</h2>
@@ -409,7 +406,7 @@ export default async function DashboardPage() {
 
         {/* Pending approvals */}
         {submitted > 0 ? (
-          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.03] p-6 space-y-5">
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/3 p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold text-white">รอการอนุมัติ</h2>
@@ -458,7 +455,7 @@ export default async function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-green-500/20 bg-green-500/[0.03] p-6 flex flex-col items-center justify-center text-center space-y-3">
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/3 p-6 flex flex-col items-center justify-center text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center">
               <CheckCircle2 size={22} className="text-green-400" />
             </div>
