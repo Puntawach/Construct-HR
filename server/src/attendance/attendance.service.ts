@@ -12,6 +12,7 @@ import {
 import { PrismaService } from 'src/database/prisma.service';
 import { CheckOutDto } from './dtos/attendance-check-out.dto';
 import { PayrollService } from 'src/payroll/payroll.service';
+import { AdminEditAttendanceDto } from './dtos/admin-edit-attendance.dto';
 
 @Injectable()
 export class AttendanceService {
@@ -216,10 +217,92 @@ export class AttendanceService {
             lastName: true,
             teamId: true,
             avatarUrl: true,
+            dailyRate: true,
+            allowancePerDay: true,
           },
         },
       },
       orderBy: { workDate: 'asc' },
     });
+  }
+
+  async getBySite(siteId: string): Promise<Attendance[]> {
+    return this.prisma.attendance.findMany({
+      where: { siteId },
+      include: {
+        checkIns: true,
+        site: true,
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            teamId: true,
+            avatarUrl: true,
+            dailyRate: true,
+            allowancePerDay: true,
+          },
+        },
+      },
+      orderBy: { workDate: 'desc' },
+    });
+  }
+
+  async adminEdit(
+    adminId: string,
+    attendanceId: string,
+    dto: AdminEditAttendanceDto,
+  ) {
+    const attendance = await this.prisma.attendance.findUnique({
+      where: { id: attendanceId },
+    });
+
+    if (!attendance) throw new NotFoundException('Attendance not found');
+
+    const before = {
+      normalHours: attendance.normalHours,
+      otHours: attendance.otHours,
+      totalHours: attendance.totalHours,
+      isManualOverride: attendance.isManualOverride,
+    };
+
+    const normalHours = dto.normalHours ?? attendance.normalHours;
+    const otHours = dto.otHours ?? attendance.otHours;
+    const totalHours = normalHours + otHours;
+
+    const updated = await this.prisma.attendance.update({
+      where: { id: attendanceId },
+      data: {
+        normalHours,
+        otHours,
+        totalHours,
+        isManualOverride: true,
+        overrideNote: dto.overrideNote,
+      },
+    });
+
+    // บันทึก audit log
+    await this.prisma.adminAuditLog.create({
+      data: {
+        attendanceId,
+        adminId,
+        action: 'MANUAL_OVERRIDE',
+        before,
+        after: { normalHours, otHours, totalHours, isManualOverride: true },
+        note: dto.overrideNote,
+      },
+    });
+
+    // Recalculate payroll ถ้า approved
+    if (attendance.status === 'APPROVED') {
+      const workDate = new Date(attendance.workDate);
+      await this.payrollService.calculateForEmployee(
+        attendance.employeeId,
+        workDate.getMonth() + 1,
+        workDate.getFullYear(),
+      );
+    }
+
+    return updated;
   }
 }

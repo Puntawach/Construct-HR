@@ -5,10 +5,10 @@ export class CreateReportDto {
   @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty()
-  attendanceId: string;
+  attendanceId!: string;
 
   @Transform(({ value }) => value?.trim())
   @IsString()
   @IsNotEmpty()
-  detail: string;
+  detail!: string;
 }

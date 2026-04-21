@@ -5,11 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { CloudinaryService } from 'src/shared/upload/cloudinary.service';
-import { CreateReportDto } from './dtos/create-report.dto';
-import {
-  ReportImage,
-  ReportStatus,
-} from 'src/database/generated/prisma/client';
+import { ReportStatus } from 'src/database/generated/prisma/client';
 
 @Injectable()
 export class ReportService {
@@ -20,43 +16,44 @@ export class ReportService {
 
   async create(
     employeeId: string,
-    file: Express.Multer.File,
+    files: Express.Multer.File[],
     attendanceId: string,
     detail: string,
-  ): Promise<ReportImage> {
-    // 1. verify attendance belongs to employee
+  ) {
     const attendance = await this.prisma.attendance.findFirst({
       where: { id: attendanceId, employeeId },
     });
 
-    if (!attendance) {
-      throw new NotFoundException('Attendance not found');
-    }
+    if (!attendance) throw new NotFoundException('Attendance not found');
+    if (!files || files.length === 0)
+      throw new BadRequestException('At least one image is required');
 
-    if (!file) {
-      throw new BadRequestException('Image file is required');
-    }
+    // Upload all images to cloudinary
+    const uploadResults = await this.cloudinaryService.uploadMany(files);
 
-    // 2. upload image to cloudinary
-    const result = await this.cloudinaryService.upload(file);
-
-    // 3. save report image to database
-    return this.prisma.reportImage.create({
+    // Create report with images
+    return this.prisma.report.create({
       data: {
-        attendanceId: attendanceId,
-        imageUrl: result.secure_url,
-        detail: detail,
+        attendanceId,
+        detail,
+        images: {
+          create: uploadResults.map((result) => ({
+            imageUrl: result.secure_url,
+          })),
+        },
       },
+      include: { images: true },
     });
   }
 
-  async getMyReports(employeeId: string): Promise<ReportImage[]> {
-    return this.prisma.reportImage.findMany({
+  async getMyReports(employeeId: string) {
+    return this.prisma.report.findMany({
       where: {
         deletedAt: null,
         attendance: { employeeId },
       },
       include: {
+        images: true,
         attendance: {
           select: {
             workDate: true,
@@ -68,10 +65,11 @@ export class ReportService {
     });
   }
 
-  async getAllReports(): Promise<ReportImage[]> {
-    return this.prisma.reportImage.findMany({
+  async getAllReports() {
+    return this.prisma.report.findMany({
       where: { deletedAt: null },
       include: {
+        images: true,
         attendance: {
           select: {
             workDate: true,
@@ -81,6 +79,7 @@ export class ReportService {
                 id: true,
                 firstName: true,
                 lastName: true,
+                teamId: true,
               },
             },
           },
@@ -89,44 +88,36 @@ export class ReportService {
       orderBy: { createdAt: 'desc' },
     });
   }
-  async approve(reportId: string): Promise<ReportImage> {
-    const report = await this.prisma.reportImage.findFirst({
+
+  async approve(reportId: string) {
+    const report = await this.prisma.report.findFirst({
       where: { id: reportId, deletedAt: null },
     });
 
-    if (!report) {
-      throw new NotFoundException('Report not found');
-    }
-
+    if (!report) throw new NotFoundException('Report not found');
     if (report.status !== ReportStatus.PENDING) {
       throw new BadRequestException('Report is not in PENDING status');
     }
 
-    return this.prisma.reportImage.update({
+    return this.prisma.report.update({
       where: { id: reportId },
       data: { status: ReportStatus.APPROVED },
     });
   }
 
-  async reject(reportId: string): Promise<ReportImage> {
-    const report = await this.prisma.reportImage.findFirst({
+  async reject(reportId: string) {
+    const report = await this.prisma.report.findFirst({
       where: { id: reportId, deletedAt: null },
     });
 
-    if (!report) {
-      throw new NotFoundException('Report not found');
-    }
-
+    if (!report) throw new NotFoundException('Report not found');
     if (report.status !== ReportStatus.PENDING) {
       throw new BadRequestException('Report is not in PENDING status');
     }
 
-    return this.prisma.reportImage.update({
+    return this.prisma.report.update({
       where: { id: reportId },
-      data: {
-        status: ReportStatus.REJECTED,
-        deletedAt: new Date(),
-      },
+      data: { status: ReportStatus.REJECTED, deletedAt: new Date() },
     });
   }
 }

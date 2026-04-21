@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { TypedConfigService } from 'src/config/typed-config.service';
 import { Readable } from 'stream';
@@ -15,16 +15,31 @@ export class CloudinaryService {
 
   upload(file: Express.Multer.File): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
-      const writableStream = cloudinary.uploader.upload_stream(
-        (error, result) => {
-          if (error || !result) {
-            reject(new Error('Cloudinary uploaded failed'));
-            return;
-          }
-          resolve(result);
-        },
-      );
-      Readable.from(file.buffer).pipe(writableStream);
+      const stream = cloudinary.uploader.upload_stream((error, result) => {
+        if (error || !result) {
+          reject(new InternalServerErrorException('Cloudinary upload failed'));
+          return;
+        }
+        resolve(result);
+      });
+      Readable.from(file.buffer).pipe(stream);
     });
+  }
+
+  async uploadMany(
+    files: Express.Multer.File[],
+    batchSize = 3,
+  ): Promise<UploadApiResponse[]> {
+    const results: UploadApiResponse[] = [];
+
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map((file) => this.upload(file)),
+      );
+      results.push(...batchResults);
+    }
+
+    return results;
   }
 }

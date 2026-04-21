@@ -6,32 +6,27 @@ import {
   Body,
   Param,
   UseInterceptors,
-  UploadedFile,
-  Req,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ReportService } from './report.service';
-import { ReportImage } from 'src/database/generated/prisma/client';
-import { CreateReportDto } from './dtos/create-report.dto';
-import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
 import { CurrentEmployee } from 'src/auth/decorators/current-employee.decorator';
-import { memoryStorage } from 'multer';
-import type { Request } from 'express';
+import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
+import { Roles } from 'src/auth/decorators/role.decorator';
 
 @Controller('reports')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  //   Employee endpoints
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FilesInterceptor('images', 10)) // max 10 รูป
   create(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
     @Body('attendanceId') attendanceId: string,
     @Body('detail') detail: string,
     @CurrentEmployee() employee: JwtPayload,
   ) {
-    return this.reportService.create(employee.sub, file, attendanceId, detail);
+    return this.reportService.create(employee.sub, files, attendanceId, detail);
   }
 
   @Get('me')
@@ -39,17 +34,19 @@ export class ReportController {
     return this.reportService.getMyReports(employee.sub);
   }
 
-  // Admin endpoints
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Get()
   getAllReports() {
     return this.reportService.getAllReports();
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch(':reportId/approve')
   approve(@Param('reportId') reportId: string) {
     return this.reportService.approve(reportId);
   }
 
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch(':reportId/reject')
   reject(@Param('reportId') reportId: string) {
     return this.reportService.reject(reportId);

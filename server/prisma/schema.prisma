@@ -41,28 +41,30 @@ enum ReportStatus {
 }
 
 model Employee {
-  id               String   @id @default(uuid())
-  email            String   @unique
+  id               String          @id @default(uuid())
+  email            String          @unique
   password         String
-  firstName        String   @map("first_name")
-  lastName         String   @map("last_name")
-  dailyRate        Int?     @map("daily_rate")
-  allowancePerDay  Int?     @map("allowance_per_day")
-  phoneNumber      String   @map("phone_number")
+  firstName        String          @map("first_name")
+  lastName         String          @map("last_name")
+  dailyRate        Int?            @map("daily_rate")
+  allowancePerDay  Int?            @map("allowance_per_day")
+  phoneNumber      String          @map("phone_number")
   address          String
-  identificationId String   @map("identification_id")
-  role             Role     @default(WORKER)
-  status           Status   @default(ACTIVE)
+  identificationId String          @map("identification_id")
+  role             Role            @default(WORKER)
+  status           Status          @default(ACTIVE)
   avatarUrl        String?
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  auditLogs        AdminAuditLog[] @relation("AuditAdmin")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
 
   attendances Attendance[]
   teamId      String?
   team        Team?        @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Restrict)
 
-  teams        Team[]        @relation("TeamLeaders")
-  payrollItems PayrollItem[]
+  teams          Team[]          @relation("TeamLeaders")
+  payrollItems   PayrollItem[]
+  adminAuditLogs AdminAuditLog[]
 }
 
 model Team {
@@ -77,10 +79,12 @@ model Team {
 }
 
 model Site {
-  id   String @id @default(uuid())
-  name String
-  lat  Float
-  long Float
+  id         String @id @default(uuid())
+  name       String
+  lat        Float
+  long       Float
+  shiftStart String @default("08:00") @map("shift_start")
+  shiftEnd   String @default("17:00") @map("shift_end")
 
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz()
@@ -90,16 +94,18 @@ model Site {
 }
 
 model Attendance {
-  id              String           @id @default(uuid())
-  workDate        DateTime
-  totalHours      Float            @default(0)
-  normalHours     Float            @default(0)
-  otHours         Float            @default(0)
-  workDescription String?
-  issues          String?
-  status          AttendanceStatus @default(WORKING)
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
+  id               String           @id @default(uuid())
+  workDate         DateTime
+  totalHours       Float            @default(0)
+  normalHours      Float            @default(0)
+  otHours          Float            @default(0)
+  workDescription  String?
+  issues           String?
+  status           AttendanceStatus @default(WORKING)
+  isManualOverride Boolean          @default(false) @map("is_manual_override")
+  overrideNote     String?          @map("override_note")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
 
   employeeId      String
   employee        Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -110,12 +116,33 @@ model Attendance {
 
   checkIns     CheckIn[]
   reportImages ReportImage[]
+  auditLogs    AdminAuditLog[]
+  reports      Report[]
 
   @@unique([employeeId, workDate])
   @@index([employeeId])
   @@index([siteId])
   @@index([workDate])
   @@index([payrollPeriodId])
+}
+
+model AdminAuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  before    Json
+  after     Json
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  adminId      String
+  admin        Employee   @relation("AuditAdmin", fields: [adminId], references: [id])
+  employee     Employee?  @relation(fields: [employeeId], references: [id])
+  employeeId   String?
+
+  @@index([attendanceId])
+  @@index([adminId])
 }
 
 model CheckIn {
@@ -172,15 +199,24 @@ model PayrollItem {
 }
 
 model ReportImage {
-  id       String @id @default(uuid())
-  imageUrl String
-  detail   String
+  id           String      @id @default(uuid())
+  imageUrl     String
+  reportId     String
+  report       Report      @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  attendance   Attendance? @relation(fields: [attendanceId], references: [id])
+  attendanceId String?
+}
 
-  status       ReportStatus @default(PENDING)
+model Report {
+  id           String        @id @default(uuid())
+  detail       String
+  status       ReportStatus  @default(PENDING)
   deletedAt    DateTime?
   attendanceId String
-  attendance   Attendance   @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  attendance   Attendance    @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  images       ReportImage[]
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
 }

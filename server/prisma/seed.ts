@@ -56,8 +56,8 @@ async function main() {
   console.log('🧹 clearing database');
 
   await prisma.checkIn.deleteMany();
-  await prisma.reportImage.deleteMany();
   await prisma.attendance.deleteMany();
+  await prisma.report.deleteMany();
   await prisma.payrollItem.deleteMany();
   await prisma.payrollPeriod.deleteMany();
   await prisma.employee.deleteMany();
@@ -264,12 +264,15 @@ async function main() {
           },
         });
 
+        // แก้ส่วนสร้าง report ใน attendance loop
         if (Math.random() < 0.2) {
-          await prisma.reportImage.create({
+          await prisma.report.create({
             data: {
               attendanceId: attendance.id,
-              imageUrl: 'https://picsum.photos/400',
               detail: 'รายงานความคืบหน้างาน',
+              images: {
+                create: [{ imageUrl: 'https://picsum.photos/400/300' }],
+              },
             },
           });
         }

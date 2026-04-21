@@ -14,6 +14,7 @@ import type { JwtPayload } from 'src/auth/types/jwt-payload.type';
 import { AttendanceService } from './attendance.service';
 import { CheckOutDto } from './dtos/attendance-check-out.dto';
 import { Roles } from 'src/auth/decorators/role.decorator';
+import { AdminEditAttendanceDto } from './dtos/admin-edit-attendance.dto';
 
 @Controller('attendance')
 export class AttendanceController {
@@ -70,5 +71,21 @@ export class AttendanceController {
     @Query('year', ParseIntPipe) year: number,
   ) {
     return this.attendanceService.getAllByMonth(month, year);
+  }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Get('admin/site/:siteId')
+  getBySite(@Param('siteId') siteId: string) {
+    return this.attendanceService.getBySite(siteId);
+  }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @Patch(':attendanceId/admin-edit')
+  adminEdit(
+    @Param('attendanceId') attendanceId: string,
+    @Body() dto: AdminEditAttendanceDto,
+    @CurrentEmployee() admin: JwtPayload,
+  ) {
+    return this.attendanceService.adminEdit(admin.sub, attendanceId, dto);
   }
 }
